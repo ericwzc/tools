@@ -2,6 +2,54 @@ __author__ = 'erwang'
 
 import itertools
 
+def correctinput(expr):
+    ands = expr.split('+')
+    memo = {}
+    clean = []
+    for ad in ands:
+        trimmed = ad.strip()
+        clean.append(trimmed)
+        for i in trimmed:
+            if i == '!':
+                continue
+            memo[i] = '*'
+    result = []
+    for ad in clean:
+        result.extend(dobinarize(ad, memo.copy()))
+    return result
+
+def dobinarize(ad, memo):
+    negate= False
+    for i in ad:
+        if negate:
+           memo[i] = 0;
+           negate = False
+           continue
+        if i == '!':
+           negate= True
+        else:
+           memo[i] = 1
+
+    keys = [ k for k in sorted(memo.keys()) if memo[k] == '*']
+
+    tuples = []
+    if keys:
+       paddedTuple(memo, keys, tuples)
+    else:
+       tuples.extend(tuple(memo[i] for i in sorted(memo.keys())))
+    return tuples
+
+
+def paddedTuple(eleMap, keys, tuples):
+    if keys:
+        for i in [0, 1]:
+            eleMap[keys[0]] = i
+            paddedTuple(eleMap, keys[1:], tuples)
+    else:
+        tuples.append(tuple(eleMap[i] for i in sorted(eleMap.keys())))
+
+# print(correctinput('xyz+x!y+yz'))
+
 def combgen(items):
     i = 1
     while i <= len(items):
@@ -31,8 +79,6 @@ def combine(grps, unticked, combined={}, tomerge=[]):
             grp2 = grps[1]
         merge(grps[0], grp2, unticked, combined, tomerge)
         grps = grps[1:]
-
-    # print(tomerge)
 
     if len(tomerge):
         combine(tomerge, unticked, combined, tomerge=[])
