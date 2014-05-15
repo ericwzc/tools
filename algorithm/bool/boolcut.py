@@ -2,33 +2,23 @@ __author__ = 'erwang'
 
 import itertools
 
-def correctinput(expr):
-    ands = expr.split('+')
-    memo = {}
-    clean = []
-    for ad in ands:
-        trimmed = ad.strip()
-        clean.append(trimmed)
-        for i in trimmed:
-            if i == '!':
-                continue
-            memo[i] = '*'
+def convertinput(expr, memo, clean):
     result = []
     for ad in clean:
         result.extend(dobinarize(ad, memo.copy()))
-    return result
+    return list(set(result))
 
 def dobinarize(ad, memo):
     negate= False
     for i in ad:
         if negate:
-           memo[i] = 0;
+           memo[i] = '0';
            negate = False
            continue
         if i == '!':
            negate= True
         else:
-           memo[i] = 1
+           memo[i] = '1'
 
     keys = [ k for k in sorted(memo.keys()) if memo[k] == '*']
 
@@ -36,13 +26,13 @@ def dobinarize(ad, memo):
     if keys:
        paddedTuple(memo, keys, tuples)
     else:
-       tuples.extend(tuple(memo[i] for i in sorted(memo.keys())))
+       tuples.append(tuple(memo[i] for i in sorted(memo.keys())))
     return tuples
 
 
 def paddedTuple(eleMap, keys, tuples):
     if keys:
-        for i in [0, 1]:
+        for i in ['0', '1']:
             eleMap[keys[0]] = i
             paddedTuple(eleMap, keys[1:], tuples)
     else:
@@ -58,7 +48,7 @@ def combgen(items):
         i += 1
 
 def ones(lst):
-    tmp = [i for i in lst if i == 1]
+    tmp = [i for i in lst if i == '1']
     return len(tmp)
 
 
@@ -123,9 +113,7 @@ def minbool(candidates, exprs):
             for expr in exprs:
                 mark(candidate, expr, memo)
        if len(memo) == len(exprs):
-            print(com)
-            break;
-
+            return com
 
 def mark(candidate, expr, memo):
     for i in range(len(candidate)):
@@ -134,34 +122,41 @@ def mark(candidate, expr, memo):
                return
     memo[expr] = 1
 
-exprs = [(0,0,0,0),
-        (0,0,0,1),(0,0,1,0),(1,0,0,0),
-        (0,0,1,1),(0,1,0,1),(1,0,1,0),(1,1,0,0),
-        (0,1,1,1),(1,1,0,1),
-        (1,1,1,1)
-        ]
 
-exprs = [
-    (0,0,0,0),
-    (1,0,0,0),
-    (0,1,0,0),
-    (1,0,1,0),
-    (0,1,1,0),
-    (1,1,1,0),
-    (0,0,0,1),
-    (1,0,0,1),
-    (0,0,1,1),
-    (1,0,1,1),
-    (0,1,1,1),
-    (1,1,1,1),
-    ]
+def simsplify(expr):
+    ands = expr.split('+')
+    memo = {}
+    clean = []
+    for ad in ands:
+        trimmed = ad.strip()
+        clean.append(trimmed)
+        for i in trimmed:
+            if i == '!':
+                continue
+            memo[i] = '*'
+    converted = convertinput(expr, memo, clean)
+    # print(converted)
+    unticked = []
+    combine(grpbyones(converted), unticked)
+    # print(unticked)
+    minexpr = minbool(unticked, converted)
+    # print(minexpr)
+    keys = sorted(memo.keys())
+    result_exprs = []
+    for expr in minexpr:
+        tmp = ''
+        for k, v in enumerate(expr):
+            if v != '-':
+                if v == '0':
+                    tmp += "!"
+                tmp += keys[k]
+        if tmp:
+            result_exprs.append(tmp)
+    if not result_exprs:
+        result_exprs.append('true')
+    return '+'.join(result_exprs)
 
-exprs = [(0,1,0), (1,0,1), (0,1,1), (1,1,0), (1,1,1)]
-
-exprs = [(0,0,0,1),(0,0,1,0),(0,0,1,1),(0,1,1,1),(1,0,0,0),(1,0,0,1),(1,0,1,0),(1,0,1,1),(1,1,1,0),(1,1,1,1)]
-
-unticked = []
-combine(grpbyones(exprs),unticked)
-# print(unticked)
-minbool(unticked,exprs)
-
+# simplified = simsplify('a!b!c + !ab!c + !abcd')
+# simplified = simsplify('a!b + !a!b')
+# simplified = simsplify('!ab!c + a!bc + a!b!c + ab!c + abc')
+# print(simplified)
