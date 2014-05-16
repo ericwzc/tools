@@ -8,6 +8,7 @@ def convertinput(expr, memo, clean):
         result.extend(dobinarize(ad, memo.copy()))
     return list(set(result))
 
+
 def dobinarize(ad, memo):
     negate= False
     for i in ad:
@@ -38,7 +39,6 @@ def paddedTuple(eleMap, keys, tuples):
     else:
         tuples.append(tuple(eleMap[i] for i in sorted(eleMap.keys())))
 
-# print(correctinput('xyz+x!y+yz'))
 
 def combgen(items):
     i = 1
@@ -46,6 +46,7 @@ def combgen(items):
         for j in itertools.combinations(items, i):
             yield j
         i += 1
+
 
 def ones(lst):
     tmp = [i for i in lst if i == '1']
@@ -123,8 +124,8 @@ def mark(candidate, expr, memo):
     memo[expr] = 1
 
 
-def simsplify(expr):
-    ands = expr.split('+')
+def simplify(expr):
+    ands = expr.lower().split('+')
     memo = {}
     clean = []
     for ad in ands:
@@ -137,7 +138,7 @@ def simsplify(expr):
     converted = convertinput(expr, memo, clean)
     # print(converted)
     unticked = []
-    combine(grpbyones(converted), unticked)
+    combine(grpbyones(converted), unticked, {}, [])
     # print(unticked)
     minexpr = minbool(unticked, converted)
     # print(minexpr)
@@ -156,7 +157,3 @@ def simsplify(expr):
         result_exprs.append('true')
     return '+'.join(result_exprs)
 
-# simplified = simsplify('a!b!c + !ab!c + !abcd')
-# simplified = simsplify('a!b + !a!b')
-# simplified = simsplify('!ab!c + a!bc + a!b!c + ab!c + abc')
-# print(simplified)
